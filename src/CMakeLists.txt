@@ -1,0 +1,2 @@
+pico_add_subdirectory(pico_w5x00_driver)
+pico_add_subdirectory(pico_w5x00_arch)
