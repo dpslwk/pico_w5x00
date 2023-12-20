@@ -11,15 +11,13 @@
 #include "pico/unique_id.h"
 #include "w5x00.h"  // LWK: w5x00-driver, replace with ??
 #include "pico/w5x00_arch.h"
-#include "w5x00_ll.h"  // LWK: w5x00-driver, replace with ??
+// #include "w5x00_ll.h"  // LWK: w5x00-driver, replace with ??
 
 #if PICO_W5X00_ARCH_DEBUG_ENABLED
 #define W5X00_ARCH_DEBUG(...) printf(__VA_ARGS__)
 #else
 #define W5X00_ARCH_DEBUG(...) ((void)0)
 #endif
-
-static uint32_t country_code = PICO_W5X00_ARCH_DEFAULT_COUNTRY_CODE;
 
 static async_context_t *async_context;
 
@@ -38,7 +36,7 @@ void w5x00_arch_disable_ethernet(void) {
         w5x00_cb_tcpip_deinit(&w5x00_state);
         w5x00_state.itf_state = 0;
     }
-    if (w5x00_state.wifi_join_state) {
+    if (w5x00_state.ethernet_link_state) {
         w5x00_ethernet_leave(&w5x00_state);
     }
 }
@@ -79,7 +77,7 @@ static int w5x00_arch_ethernet_connect_until(absolute_time_t until) {
 
     int status = W5X00_LINK_UP + 1;
     while(status >= 0 && status != W5X00_LINK_UP) {
-        int new_status = w5x00_tcpip_link_status(&w5x00_state, W5X00_ITF_STA);
+        int new_status = w5x00_tcpip_link_status(&w5x00_state);
         // If there was no network, keep trying
         if (new_status == W5X00_LINK_NONET) {
             new_status = W5X00_LINK_JOIN;

@@ -228,7 +228,7 @@ static int w5x00_ensure_up(w5x00_t *self) {
     assert(w5x00_is_initialized(self)); // w5x00_init has not been called
     #endif
     if (w5x00_poll != NULL) {
-        w5x00_ll_bus_sleep(&self->w5x00_ll, false);
+        w5x00_ll_bus_sleep(self, false);
         return 0;
     }
 
@@ -245,7 +245,7 @@ static int w5x00_ensure_up(w5x00_t *self) {
     // Initialise the low-level driver
     w5x00_hal_get_mac(W5X00_HAL_MAC_ETH0, self->mac);
 
-    int ret = w5x00_ll_bus_init(&self->w5x00_ll, self->mac); // LWK ???
+    int ret = w5x00_ll_bus_init(self, self->mac); // LWK ???
 
     if (ret != 0) {
         return ret;
@@ -275,28 +275,28 @@ static void w5x00_poll_func(void) {
 
     w5x00_t *self = &w5x00_state;
 
-    if (w5x00_ll_has_work(&self->w5x00_ll)) {
-        w5x00_ll_process_packets(&self->w5x00_ll);
+    if (w5x00_ll_has_work(self)) {
+        w5x00_ll_process_packets(self);
     }
 
     // if (self->pend_disassoc) {
     //     self->pend_disassoc = false;
-    //     w5x00_ll_ioctl(&self->w5x00_ll, W5X00_IOCTL_SET_DISASSOC, 0, NULL, W5X00_ITF_STA);
+    //     w5x00_ll_ioctl(self, W5X00_IOCTL_SET_DISASSOC, 0, NULL, W5X00_ITF_STA);
     // }
 
     // if (self->pend_rejoin_wpa) {
     //     self->pend_rejoin_wpa = false;
-    //     w5x00_ll_wifi_set_wpa_auth(&self->w5x00_ll);
+    //     w5x00_ll_wifi_set_wpa_auth(self);
     // }
 
     // if (self->pend_rejoin) {
     //     self->pend_rejoin = false;
-    //     w5x00_ll_wifi_rejoin(&self->w5x00_ll);
-    //     self->wifi_join_state = WIFI_JOIN_STATE_ACTIVE;
+    //     w5x00_ll_wifi_rejoin(self);
+    //     self->ethernet_link_state = WIFI_JOIN_STATE_ACTIVE;
     // }
 
     if (w5x00_sleep == 0) {
-        w5x00_ll_bus_sleep(&self->w5x00_ll, true);
+        w5x00_ll_bus_sleep(self, true);
     }
 
     #ifdef W5X00_POST_POLL_HOOK
@@ -328,7 +328,26 @@ int w5x00_send_ethernet(w5x00_t *self, size_t len, const void *buf, bool is_pbuf
         return ret;
     }
 
-    ret = w5x00_ll_send_ethernet(&self->w5x00_ll, len, buf, is_pbuf); // LWK replace with ioLibrary socket sendto ??
+    ret = w5x00_ll_send_ethernet(self, len, buf, is_pbuf); // LWK replace with ioLibrary socket sendto ??
+    W5X00_THREAD_EXIT;
+
+    return ret;
+}
+
+static int w5x00_wifi_on(w5x00_t *self) {
+    W5X00_THREAD_ENTER;
+    int ret = w5x00_ensure_up(self);
+    if (ret) {
+        W5X00_THREAD_EXIT;
+        return ret;
+    }
+
+    #ifdef W5X00_PIN_WL_RFSW_VDD
+    // Turn the RF-switch on
+    w5x00_hal_pin_high(W5X00_PIN_WL_RFSW_VDD);
+    #endif
+
+    ret = w5x00_ll_wifi_on(self);
     W5X00_THREAD_EXIT;
 
     return ret;
@@ -338,7 +357,7 @@ void w5x00_ethernet_set_up(w5x00_t *self, bool up) {
     W5X00_THREAD_ENTER;
     if (up) {
         if (self->itf_state == 0) {
-            if (w5x00_ethernet_on(self, country) != 0) {
+            if (w5x00_ethernet_on(self) != 0) {
                 W5X00_THREAD_EXIT;
                 return;
             }
@@ -373,7 +392,7 @@ int w5x00_ethernet_join(w5x00_t *self) {
     ret = w5x00_ll_wifi_join(self); // LWK ?????
 
     if (ret == 0) {
-        self->ethernet_link_state = WIFI_JOIN_STATE_ACTIVE;
+        self->ethernet_link_state = W5X00_LINK_JOIN; // LWK FIX WIFI_JOIN_STATE_ACTIVE;
     }
 
     W5X00_THREAD_EXIT;

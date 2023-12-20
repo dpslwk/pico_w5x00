@@ -23,14 +23,14 @@ static uint8_t w5x00_spi_read(void)
     uint8_t rx_data = 0;
     uint8_t tx_data = 0xFF;
 
-    spi_read_blocking(W5X00_SPI, tx_data, &rx_data, 1);
+    spi_read_blocking(W5X00_SPI_PORT, tx_data, &rx_data, 1);
 
     return rx_data;
 }
 
 static void w5x00_spi_write(uint8_t tx_data)
 {
-    spi_write_blocking(W5X00_SPI, &tx_data, 1);
+    spi_write_blocking(W5X00_SPI_PORT, &tx_data, 1);
 }
 
 static void w5x00_spi_read_burst(uint8_t *pBuf, uint16_t len)
@@ -40,7 +40,7 @@ static void w5x00_spi_read_burst(uint8_t *pBuf, uint16_t len)
     channel_config_set_read_increment(&w5x00_state.dma_channel_config_tx, false);
     channel_config_set_write_increment(&w5x00_state.dma_channel_config_tx, false);
     dma_channel_configure(w5x00_state.dma_tx, &w5x00_state.dma_channel_config_tx,
-                          &spi_get_hw(W5X00_SPI)->dr, // write address
+                          &spi_get_hw(W5X00_SPI_PORT)->dr, // write address
                           &dummy_data,               // read address
                           len,                       // element count (each element is of size transfer_data_size)
                           false);                    // don't start yet
@@ -49,7 +49,7 @@ static void w5x00_spi_read_burst(uint8_t *pBuf, uint16_t len)
     channel_config_set_write_increment(&w5x00_state.dma_channel_config_rx, true);
     dma_channel_configure(w5x00_state.dma_rx, &w5x00_state.dma_channel_config_rx,
                           pBuf,                      // write address
-                          &spi_get_hw(W5X00_SPI)->dr, // read address
+                          &spi_get_hw(W5X00_SPI_PORT)->dr, // read address
                           len,                       // element count (each element is of size transfer_data_size)
                           false);                    // don't start yet
 
@@ -67,7 +67,7 @@ static void w5x00_spi_write_burst(uint8_t *pBuf, uint16_t len)
     channel_config_set_read_increment(&w5x00_state.dma_channel_config_tx, true);
     channel_config_set_write_increment(&w5x00_state.dma_channel_config_tx, false);
     dma_channel_configure(w5x00_state.dma_tx, &w5x00_state.dma_channel_config_tx,
-                          &spi_get_hw(W5X00_SPI)->dr, // write address
+                          &spi_get_hw(W5X00_SPI_PORT)->dr, // write address
                           pBuf,                      // read address
                           len,                       // element count (each element is of size transfer_data_size)
                           false);                    // don't start yet
@@ -76,7 +76,7 @@ static void w5x00_spi_write_burst(uint8_t *pBuf, uint16_t len)
     channel_config_set_write_increment(&w5x00_state.dma_channel_config_rx, false);
     dma_channel_configure(w5x00_state.dma_rx, &w5x00_state.dma_channel_config_rx,
                           &dummy_data,               // write address
-                          &spi_get_hw(W5X00_SPI)->dr, // read address
+                          &spi_get_hw(W5X00_SPI_PORT)->dr, // read address
                           len,                       // element count (each element is of size transfer_data_size)
                           false);                    // don't start yet
 
@@ -87,10 +87,10 @@ static void w5x00_spi_write_burst(uint8_t *pBuf, uint16_t len)
     }
 }
 
-int w5x00_spi_init(w5x00_int_t *self)
+int w5x00_spi_init(w5x00_t *self)
 {
     // this example will use SPI0 at 5MHz
-    spi_init(SPI_PORT, 5000 * 1000);
+    spi_init(W5X00_SPI_PORT, 5000 * 1000);
 
     gpio_set_function(W5X00_SPI_SCK_PIN, GPIO_FUNC_SPI);
     gpio_set_function(W5X00_SPI_MOSI_PIN, GPIO_FUNC_SPI);

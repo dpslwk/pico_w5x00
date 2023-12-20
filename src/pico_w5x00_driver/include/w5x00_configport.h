@@ -25,8 +25,8 @@ extern "C" {
 #define W5X00_GPIO_RSTN_PIN 20
 #endif
 
-#ifndef W5X00_SPI
-#define W5X00_SPI spi0
+#ifndef W5X00_SPI_PORT
+#define W5X00_SPI_PORT spi0
 #endif
 #ifndef W5X00_SPI_SCK_PIN
 #define W5X00_SPI_SCK_PIN 18

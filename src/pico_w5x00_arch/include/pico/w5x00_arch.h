@@ -151,10 +151,6 @@ extern "C" {
  * was enabled at build time). This method must be called prior to using any other \c pico_w5x00_arch,
  * \c w5x00_driver or lwIP functions.
  *
- * \note this method initializes wireless with a country code of \c PICO_W5X00_ARCH_DEFAULT_COUNTRY_CODE
- * which defaults to \c W5X00_COUNTRY_WORLDWIDE. Worldwide settings may not give the best performance; consider
- * setting PICO_W5X00_ARCH_DEFAULT_COUNTRY_CODE to a different value or calling \ref w5x00_arch_init_with_country
- *
  * By default this method initializes the w5x00_arch code's own async_context by calling
  * \ref w5x00_arch_init_default_async_context, however the user can specify use of their own async_context
  * by calling \ref w5x00_arch_set_async_context() before calling this method

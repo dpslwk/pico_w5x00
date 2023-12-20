@@ -67,7 +67,7 @@ STATIC err_t w5x00_netif_init(struct netif *netif) {
     netif->mld_mac_filter = w5x00_macfilter;
     netif->flags |= NETIF_FLAG_MLD6;
     #endif
-    w5x00_ethernet_get_mac(netif->state, netif->name[1] - '0', netif->hwaddr);
+    w5x00_ethernet_get_mac(netif->state, netif->hwaddr);
     netif->hwaddr_len = sizeof(netif->hwaddr);
     // #if LWIP_IGMP
     // netif_set_igmp_mac_filter(netif, w5x00_netif_update_igmp_mac_filter);
