@@ -15,20 +15,19 @@ elseif (NOT EXISTS ${PICO_IOLIBRARY_DRIVER_PATH}/${W5X00_DRIVER_TEST_FILE})
     message(WARNING "PICO_IOLIBRARY_DRIVER_PATH specified but content not present.")
 endif()
 
-if(NOT DEFINED WIZNET_CHIP)
-    set(WIZNET_CHIP W5100S)
-endif()
+# Set ethernet chip
+# LWK This does not work here needs to be higher
+# if(NOT DEFINED WIZNET_CHIP)
+#     set(WIZNET_CHIP W5100S)
+# endif()
 
-if(${WIZNET_CHIP} STREQUAL W5100S)
-    add_definitions(-D_WIZCHIP_=W5100S)
-elseif(${WIZNET_CHIP} STREQUAL W5500)
-    add_definitions(-D_WIZCHIP_=W5500)
-else()
-    message(FATAL_ERROR "WIZNET_CHIP is unsupported = ${WIZNET_CHIP}")
-endif()
-
-set(WIZCHIP_PREFIXED_EXPORTS 1)
-add_definitions(-DWIZCHIP_PREFIXED_EXPORTS=1)
+# if(${WIZNET_CHIP} STREQUAL W5100S)
+#     add_definitions(-D_WIZCHIP_=W5100S)
+# elseif(${WIZNET_CHIP} STREQUAL W5500)
+#     add_definitions(-D_WIZCHIP_=W5500)
+# else()
+#     message(FATAL_ERROR "WIZNET_CHIP is unsupported = ${WIZNET_CHIP}")
+# endif()
 
 if (EXISTS ${PICO_IOLIBRARY_DRIVER_PATH}/${W5X00_DRIVER_TEST_FILE})
     message("w5x00-driver available at ${PICO_IOLIBRARY_DRIVER_PATH}")
@@ -57,6 +56,9 @@ if (EXISTS ${PICO_IOLIBRARY_DRIVER_PATH}/${W5X00_DRIVER_TEST_FILE})
             w5x00_lwip.c
             )
     target_include_directories(pico_w5x00_driver_headers INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+    target_compile_definitions(pico_w5x00_driver INTERFACE
+            WIZCHIP_PREFIXED_EXPORTS=1
+            )
     pico_mirrored_target_link_libraries(pico_w5x00_driver INTERFACE
             w5x00_driver
             hardware_gpio
