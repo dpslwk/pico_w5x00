@@ -52,8 +52,8 @@ if (EXISTS ${PICO_IOLIBRARY_DRIVER_PATH}/${W5X00_DRIVER_TEST_FILE})
     # pico_w5x00_driver adds async_context integration to w5x00_driver
     pico_add_library(pico_w5x00_driver NOFLAG)
     target_sources(pico_w5x00_driver INTERFACE
-            w5x00_driver.c
             w5x00_spi.c
+            w5x00_driver.c
             w5x00_lwip.c
             )
     target_include_directories(pico_w5x00_driver_headers INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)

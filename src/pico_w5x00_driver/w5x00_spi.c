@@ -8,17 +8,17 @@
 #include "hardware/dma.h"
 #include "w5x00.h"
 
-static inline void w5x00_cs_select(void)
+void w5x00_cs_select(void)
 {
     w5x00_hal_pin_low(W5X00_SPI_CSN_PIN);
 }
 
-static inline void w5x00_cs_deselect(void)
+void w5x00_cs_deselect(void)
 {
     w5x00_hal_pin_high(W5X00_SPI_CSN_PIN);
 }
 
-static uint8_t w5x00_spi_read(void)
+uint8_t w5x00_spi_read(void)
 {
     uint8_t rx_data = 0;
     uint8_t tx_data = 0xFF;
@@ -28,12 +28,12 @@ static uint8_t w5x00_spi_read(void)
     return rx_data;
 }
 
-static void w5x00_spi_write(uint8_t tx_data)
+void w5x00_spi_write(uint8_t tx_data)
 {
     spi_write_blocking(W5X00_SPI_PORT, &tx_data, 1);
 }
 
-static void w5x00_spi_read_burst(uint8_t *pBuf, uint16_t len)
+void w5x00_spi_read_burst(uint8_t *pBuf, uint16_t len)
 {
     uint8_t dummy_data = 0xFF;
 
@@ -60,7 +60,7 @@ static void w5x00_spi_read_burst(uint8_t *pBuf, uint16_t len)
     }
 }
 
-static void w5x00_spi_write_burst(const uint8_t *pBuf, uint16_t len)
+void w5x00_spi_write_burst(const uint8_t *pBuf, uint16_t len)
 {
     uint8_t dummy_data;
 

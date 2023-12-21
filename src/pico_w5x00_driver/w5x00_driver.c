@@ -231,7 +231,7 @@ static int w5x00_ensure_up(w5x00_t *self) {
     assert(w5x00_is_initialized(self)); // w5x00_init has not been called
     #endif
     if (w5x00_poll != NULL) {
-        // w5x00_ll_bus_sleep(self, false);
+        // w5x00_ll_bus_sleep(self, false); // LWK TODO ??
         return 0;
     }
 
@@ -246,14 +246,6 @@ static int w5x00_ensure_up(w5x00_t *self) {
     w5x00_delay_ms(50);
 
     // Initialise the low-level driver
-    // w5x00_hal_generate_laa_mac(W5X00_HAL_MAC_ETH0, self->mac);
-
-    // int ret = w5x00_ll_bus_init(self, self->mac); // LWK ???
-
-    // if (ret != 0) {
-    //     return ret;
-    // }
-
     int ret = w5x00_spi_init(self);
 
     if (ret != 0) {
@@ -316,13 +308,6 @@ static void w5x00_poll_func(void) {
 
     w5x00_t *self = &w5x00_state;
 
-    // if (w5x00_ll_has_work(self)) {
-    //     w5x00_ll_process_packets(self);
-    //     // cyw43_ll_process_packets
-    //     // cyw43_cb_process_ethernet
-
-    // }
-
     if (w5x00_hal_pin_read(W5X00_GPIO_INTN_PIN) == 0) {
         if ((self->netif.flags & (NETIF_FLAG_UP | NETIF_FLAG_LINK_UP)) == (NETIF_FLAG_UP | NETIF_FLAG_LINK_UP)) {
             uint16_t len;
@@ -338,7 +323,7 @@ static void w5x00_poll_func(void) {
     #endif
 
     if (w5x00_sleep == 0) {
-        // w5x00_ll_bus_sleep(self, true);
+        // w5x00_ll_bus_sleep(self, true); // LWK TOOD??
     }
 
     #ifdef W5X00_POST_POLL_HOOK
@@ -370,7 +355,6 @@ int w5x00_send_ethernet(w5x00_t *self, size_t len, const void *buf, bool is_pbuf
         return ret;
     }
 
-    // ret = w5x00_ll_send_ethernet(self, len, buf, is_pbuf); // LWK replace with ioLibrary socket sendto ??
     uint8_t ip[4] = {1, 1, 1, 1}; // dummy
     ret = WIZCHIP_EXPORT(sendto)(0, (uint8_t *)buf, len, ip, 11); // dummy port
 
@@ -419,12 +403,7 @@ static int w5x00_ethernet_on(w5x00_t *self) {
         return ret;
     }
 
-    #ifdef W5X00_PIN_WL_RFSW_VDD
-    // Turn the RF-switch on
-    w5x00_hal_pin_high(W5X00_PIN_WL_RFSW_VDD);
-    #endif
-
-    ret = w5x00_ll_wifi_on(self);
+    // ret = w5x00_ll_wifi_on(self); // LWK TODO??
     W5X00_THREAD_EXIT;
 
     return ret;
@@ -466,7 +445,7 @@ int w5x00_ethernet_join(w5x00_t *self) {
         return ret;
     }
 
-    ret = w5x00_ll_wifi_join(self); // LWK ?????
+    // ret = w5x00_ll_wifi_join(self); // LWK TDOO ?????
 
     if (ret == 0) {
         self->ethernet_link_state = W5X00_LINK_JOIN; // LWK FIX WIFI_JOIN_STATE_ACTIVE;
