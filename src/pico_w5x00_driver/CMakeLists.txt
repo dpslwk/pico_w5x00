@@ -27,6 +27,9 @@ else()
     message(FATAL_ERROR "WIZNET_CHIP is unsupported = ${WIZNET_CHIP}")
 endif()
 
+set(WIZCHIP_PREFIXED_EXPORTS 1)
+add_definitions(-DWIZCHIP_PREFIXED_EXPORTS=1)
+
 if (EXISTS ${PICO_IOLIBRARY_DRIVER_PATH}/${W5X00_DRIVER_TEST_FILE})
     message("w5x00-driver available at ${PICO_IOLIBRARY_DRIVER_PATH}")
 

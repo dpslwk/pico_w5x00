@@ -60,7 +60,7 @@ static void w5x00_spi_read_burst(uint8_t *pBuf, uint16_t len)
     }
 }
 
-static void w5x00_spi_write_burst(uint8_t *pBuf, uint16_t len)
+static void w5x00_spi_write_burst(const uint8_t *pBuf, uint16_t len)
 {
     uint8_t dummy_data;
 

@@ -12,7 +12,7 @@ static uint8_t w5x00_spi_read(void);
 static void w5x00_spi_write(uint8_t tx_data);
 
 static void w5x00_spi_read_burst(uint8_t *pBuf, uint16_t len);
-static void w5x00_spi_write_burst(uint8_t *pBuf, uint16_t len);
+static void w5x00_spi_write_burst(const uint8_t *pBuf, uint16_t len);
 
 int w5x00_spi_init(w5x00_t *self);
 void w5x00_spi_deinit(w5x00_t *self);

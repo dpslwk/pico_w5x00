@@ -11,6 +11,9 @@
 #include "netif/ethernet.h"
 #endif
 
+#include "wizchip_conf.h"
+#include "socket.h"
+
 #if W5X00_LWIP
 
 
@@ -72,6 +75,16 @@ STATIC err_t w5x00_netif_init(struct netif *netif) {
     // #if LWIP_IGMP
     // netif_set_igmp_mac_filter(netif, w5x00_netif_update_igmp_mac_filter);
     // #endif
+
+    int ret = WIZCHIP_EXPORT(socket)(0, Sn_MR_MACRAW, 0, 0);
+    if (ret != 0) {
+        // printf("WIZNET fatal error in netifinit: %d\n", ret);
+        return ERR_IF;
+    }
+
+    // Enable MAC filtering so we only get frames destined for us, to reduce load on lwIP
+    setSn_MR(0, getSn_MR(0) | Sn_MR_MFEN);
+
     return ERR_OK;
 }
 

@@ -12,6 +12,9 @@
 #include "w5x00_spi.h"
 #include "pico/w5x00_driver.h"
 
+#include "wizchip_conf.h"
+#include "socket.h"
+
 #ifndef W5X00_GPIO_IRQ_HANDLER_PRIORITY
 #define W5X00_GPIO_IRQ_HANDLER_PRIORITY 0x40
 #endif
@@ -228,7 +231,7 @@ static int w5x00_ensure_up(w5x00_t *self) {
     assert(w5x00_is_initialized(self)); // w5x00_init has not been called
     #endif
     if (w5x00_poll != NULL) {
-        w5x00_ll_bus_sleep(self, false);
+        // w5x00_ll_bus_sleep(self, false);
         return 0;
     }
 
@@ -243,12 +246,50 @@ static int w5x00_ensure_up(w5x00_t *self) {
     w5x00_delay_ms(50);
 
     // Initialise the low-level driver
-    w5x00_hal_get_mac(W5X00_HAL_MAC_ETH0, self->mac);
+    // w5x00_hal_generate_laa_mac(W5X00_HAL_MAC_ETH0, self->mac);
 
-    int ret = w5x00_ll_bus_init(self, self->mac); // LWK ???
+    // int ret = w5x00_ll_bus_init(self, self->mac); // LWK ???
+
+    // if (ret != 0) {
+    //     return ret;
+    // }
+
+    int ret = w5x00_spi_init(self);
 
     if (ret != 0) {
         return ret;
+    }
+
+    // w5x00_spi_gpio_setup();
+    // W5X00_EVENT_POLL_HOOK;
+    // w5x00_spi_reset();
+    // W5X00_EVENT_POLL_HOOK;
+
+    reg_wizchip_cris_cbfunc(w5x00_thread_enter, w5x00_thread_exit);
+    reg_wizchip_cs_cbfunc(w5x00_cs_select, w5x00_cs_deselect);
+    reg_wizchip_spi_cbfunc(w5x00_spi_read, w5x00_spi_write);
+    reg_wizchip_spiburst_cbfunc(w5x00_spi_read_burst, w5x00_spi_write_burst);
+
+    // wiznet5k_init();
+    #if _WIZCHIP_ < W5200
+    uint8_t sn_size[8] = {8, 0, 0, 0, 8, 0, 0, 0}; // 8k buffers on W5100 and W5100S
+    #else
+    uint8_t sn_size[16] = {16, 0, 0, 0, 0, 0, 0, 0, 16, 0, 0, 0, 0, 0, 0, 0};
+    #endif
+    ctlwizchip(CW_INIT_WIZCHIP, sn_size);
+
+    wizchip_setinterruptmask(IK_SOCK_0);
+    setSn_IMR(0, Sn_IR_RECV);
+    #if _WIZCHIP_ == W5100S
+    // Enable interrupt pin
+    setMR(MR2_G_IEN);
+    #endif
+
+    uint8_t *mac = self->mac;
+    getSHAR(mac);
+    if ((mac[0] | mac[1] | mac[2] | mac[3] | mac[4] | mac[5]) == 0) {
+        w5x00_hal_generate_laa_mac(W5X00_HAL_MAC_ETH0, mac);
+        setSHAR(mac);
     }
 
     W5X00_DEBUG("w5x00 loaded ok, mac %02x:%02x:%02x:%02x:%02x:%02x\n",
@@ -275,28 +316,29 @@ static void w5x00_poll_func(void) {
 
     w5x00_t *self = &w5x00_state;
 
-    if (w5x00_ll_has_work(self)) {
-        w5x00_ll_process_packets(self);
+    // if (w5x00_ll_has_work(self)) {
+    //     w5x00_ll_process_packets(self);
+    //     // cyw43_ll_process_packets
+    //     // cyw43_cb_process_ethernet
+
+    // }
+
+    if (w5x00_hal_pin_read(W5X00_GPIO_INTN_PIN) == 0) {
+        if ((self->netif.flags & (NETIF_FLAG_UP | NETIF_FLAG_LINK_UP)) == (NETIF_FLAG_UP | NETIF_FLAG_LINK_UP)) {
+            uint16_t len;
+            while ((len = wiznet5k_recv_ethernet(self, self->eth_frame)) > 0) {
+                w5x00_cb_process_ethernet(self, len, self->eth_frame);
+            }
+        }
     }
 
-    // if (self->pend_disassoc) {
-    //     self->pend_disassoc = false;
-    //     w5x00_ll_ioctl(self, W5X00_IOCTL_SET_DISASSOC, 0, NULL, W5X00_ITF_STA);
-    // }
-
-    // if (self->pend_rejoin_wpa) {
-    //     self->pend_rejoin_wpa = false;
-    //     w5x00_ll_wifi_set_wpa_auth(self);
-    // }
-
-    // if (self->pend_rejoin) {
-    //     self->pend_rejoin = false;
-    //     w5x00_ll_wifi_rejoin(self);
-    //     self->ethernet_link_state = WIFI_JOIN_STATE_ACTIVE;
-    // }
+    wizchip_clrinterrupt(IK_SOCK_0);
+    #if _WIZCHIP_ == W5100S
+    setSn_IR(0, Sn_IR_RECV); // W5100S driver bug: must write to the Sn_IR register to reset the IRQ signal
+    #endif
 
     if (w5x00_sleep == 0) {
-        w5x00_ll_bus_sleep(self, true);
+        // w5x00_ll_bus_sleep(self, true);
     }
 
     #ifdef W5X00_POST_POLL_HOOK
@@ -328,13 +370,48 @@ int w5x00_send_ethernet(w5x00_t *self, size_t len, const void *buf, bool is_pbuf
         return ret;
     }
 
-    ret = w5x00_ll_send_ethernet(self, len, buf, is_pbuf); // LWK replace with ioLibrary socket sendto ??
+    // ret = w5x00_ll_send_ethernet(self, len, buf, is_pbuf); // LWK replace with ioLibrary socket sendto ??
+    uint8_t ip[4] = {1, 1, 1, 1}; // dummy
+    ret = WIZCHIP_EXPORT(sendto)(0, (uint8_t *)buf, len, ip, 11); // dummy port
+
+    if (ret != len) {
+        // printf("wiznet5k_send_ethernet: fatal error %d\n", ret);
+        w5x00_cb_tcpip_set_link_down(self);
+        // netif_set_down(&self->netif); // ?? µPy
+    }
+
     W5X00_THREAD_EXIT;
 
     return ret;
 }
 
-static int w5x00_wifi_on(w5x00_t *self) {
+// Stores the frame in self->eth_frame and returns number of bytes in the frame, 0 for no frame
+uint16_t wiznet5k_recv_ethernet(w5x00_t *self, const uint8_t *buf) {
+    W5X00_THREAD_ENTER;
+    uint16_t len = getSn_RX_RSR(0);
+    if (len == 0) {
+        W5X00_THREAD_EXIT;
+        return 0;
+    }
+
+    uint8_t ip[4] = {1, 1, 1, 1}; // dummy
+    uint16_t port;
+    int ret = WIZCHIP_EXPORT(recvfrom)(0, (uint8_t *)buf, 1514, ip, &port);
+    if (ret <= 0) {
+        // printf("wiznet5k_recv_ethernet: fatal error len=%u ret=%d\n", len, ret);
+        w5x00_cb_tcpip_set_link_down(self);
+        // netif_set_down(&self->netif); // ?? µPy
+
+        W5X00_THREAD_EXIT;
+        return 0;
+    }
+
+    W5X00_THREAD_EXIT;
+
+    return ret;
+}
+
+static int w5x00_ethernet_on(w5x00_t *self) {
     W5X00_THREAD_ENTER;
     int ret = w5x00_ensure_up(self);
     if (ret) {
