@@ -37,14 +37,14 @@ static async_when_pending_worker_t w5x00_poll_worker = {
 };
 
 static void w5x00_set_irq_enabled(bool enabled) {
-    gpio_set_irq_enabled(W5X00_GPIO_INTN_PIN, GPIO_IRQ_LEVEL_HIGH, enabled);
+    gpio_set_irq_enabled(W5X00_GPIO_INTN_PIN, GPIO_IRQ_LEVEL_LOW, enabled);
 }
 
 // GPIO interrupt handler to tell us there's w5x00 has work to do
 static void w5x00_gpio_irq_handler(void)
 {
     uint32_t events = gpio_get_irq_event_mask(W5X00_GPIO_INTN_PIN);
-    if (events & GPIO_IRQ_LEVEL_HIGH) {
+    if (events & GPIO_IRQ_LEVEL_LOW) {
         // As we use a high level interrupt, it will go off forever until it's serviced
         // So disable the interrupt until this is done. It's re-enabled again by W5X00_POST_POLL_HOOK
         // which is called at the end of w5x00_poll_func
@@ -286,6 +286,8 @@ static int w5x00_ensure_up(w5x00_t *self) {
         setSHAR(mac);
     }
 
+    w5x00_delay_ms(250);
+
     W5X00_DEBUG("w5x00 loaded ok, mac %02x:%02x:%02x:%02x:%02x:%02x\n",
         self->mac[0], self->mac[1], self->mac[2], self->mac[3], self->mac[4], self->mac[5]);
 
@@ -364,6 +366,10 @@ int w5x00_send_ethernet(w5x00_t *self, size_t len, const void *buf, bool is_pbuf
         // printf("wiznet5k_send_ethernet: fatal error %d\n", ret);
         w5x00_cb_tcpip_set_link_down(self);
         // netif_set_down(&self->netif); // ?? µPy
+
+        ret = -1;
+    } else {
+        ret = 0;
     }
 
     W5X00_THREAD_EXIT;
