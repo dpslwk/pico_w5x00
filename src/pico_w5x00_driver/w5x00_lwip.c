@@ -19,7 +19,8 @@
 
 STATIC err_t w5x00_netif_output(struct netif *netif, struct pbuf *p) {
     w5x00_t *self = netif->state;
-    int ret = w5x00_send_ethernet(self, p->tot_len, (void *)p, true);
+    pbuf_copy_partial(p, self->eth_frame, p->tot_len, 0);
+    int ret = w5x00_send_ethernet(self, p->tot_len, self->eth_frame, true);
     if (ret) {
         W5X00_WARN("send_ethernet failed: %d\n", ret);
         return ERR_IF;
