@@ -454,7 +454,7 @@ int w5x00_ethernet_join(w5x00_t *self) {
     }
 
     // ret = w5x00_ll_wifi_join(self); // LWK TDOO ?????
-
+    w5x00_cb_tcpip_set_link_up(self);
     if (ret == 0) {
         self->ethernet_link_state = W5X00_LINK_JOIN; // LWK FIX WIFI_JOIN_STATE_ACTIVE;
     }
