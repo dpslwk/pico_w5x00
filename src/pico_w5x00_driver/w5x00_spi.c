@@ -100,6 +100,7 @@ int w5x00_spi_init(w5x00_t *self)
     // bi_decl(bi_3pins_with_func(W5X00_SPI_MISO_PIN, W5X00_SPI_MOSI_PIN, W5X00_SPI_SCK_PIN, GPIO_FUNC_SPI));
 
     // chip select is active-low, so we'll initialise it to a driven-high state
+    gpio_init(W5X00_SPI_CSN_PIN);
     w5x00_hal_pin_config(W5X00_SPI_CSN_PIN, W5X00_HAL_PIN_MODE_OUTPUT, W5X00_HAL_PIN_PULL_NONE, 0);
     w5x00_hal_pin_high(W5X00_SPI_CSN_PIN);
 

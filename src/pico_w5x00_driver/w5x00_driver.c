@@ -108,8 +108,10 @@ static void w5x00_sleep_timeout_reached(async_context_t *context, __unused async
 }
 
 bool w5x00_driver_init(async_context_t *context) {
+    gpio_init(W5X00_GPIO_INTN_PIN);
     w5x00_hal_pin_config(W5X00_GPIO_INTN_PIN, W5X00_HAL_PIN_MODE_INPUT, W5X00_HAL_PIN_PULL_UP, 0);
     // bi_decl(bi_1pin_with_name(W5X00_GPIO_INTN_PIN, "W5x00 INTERRUPT"));
+    gpio_init(W5X00_GPIO_RSTN_PIN);
     w5x00_hal_pin_config(W5X00_GPIO_RSTN_PIN, W5X00_HAL_PIN_MODE_OUTPUT, W5X00_HAL_PIN_PULL_NONE, 0);
     w5x00_hal_pin_low(W5X00_GPIO_RSTN_PIN); // Hold Wiznet in reset
     // bi_decl(bi_1pin_with_name(W5X00_GPIO_RSTN_PIN, "W5x00 RESET"));
