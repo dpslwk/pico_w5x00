@@ -16,7 +16,7 @@
 #endif
 
 #if NO_SYS
-#error example_w5x00_arch_freetos_sys requires NO_SYS=0
+#error w5x00_arch_freetos_sys requires NO_SYS=0
 #endif
 
 static async_context_freertos_t w5x00_async_context_freertos;
