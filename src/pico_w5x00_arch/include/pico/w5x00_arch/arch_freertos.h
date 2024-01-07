@@ -9,7 +9,7 @@
 
 // PICO_CONFIG: W5X00_TASK_STACK_SIZE, Stack size for the W5X00 FreeRTOS task in 4-byte words, type=int, default=1024, group=pico_w5x00_arch
 #ifndef W5X00_TASK_STACK_SIZE
-#define W5X00_TASK_STACK_SIZE 1024
+#define W5X00_TASK_STACK_SIZE (1024 * 2)
 #endif
 
 // PICO_CONFIG: W5X00_TASK_PRIORITY, Priority for the W5X00 FreeRTOS task, type=int, default=tskIDLE_PRIORITY + 4, group=pico_w5x00_arch
