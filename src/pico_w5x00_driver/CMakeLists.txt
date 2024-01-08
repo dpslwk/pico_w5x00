@@ -7,7 +7,7 @@ set(W5X00_DRIVER_TEST_FILE "Ethernet/wizchip_conf.h")
 
 if (NOT PICO_IOLIBRARY_DRIVER_PATH)
     set(PICO_IOLIBRARY_DRIVER_PATH ${CMAKE_CURRENT_LIST_DIR}/../../lib/ioLibrary_Driver)
-    if (PICO_W5X00_SUPPORTED AND NOT EXISTS ${PICO_IOLIBRARY_DRIVER_PATH}/${W5X00_DRIVER_TEST_FILE})
+    if (NOT EXISTS ${PICO_IOLIBRARY_DRIVER_PATH}/${W5X00_DRIVER_TEST_FILE})
         message(WARNING "ioLibrary_Driver submodule has not been initialized; Wiznet Ethernet support will be unavailable
 hint: try 'git submodule update --init' from your SDK directory (${CMAKE_SOURCE_DIR}).")
     endif()
