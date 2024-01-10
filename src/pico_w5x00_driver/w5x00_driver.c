@@ -152,7 +152,7 @@ void w5x00_driver_deinit(async_context_t *context) {
 
 // Generate a mac address if one is not set in otp
 void __attribute__((weak)) w5x00_hal_generate_laa_mac(__unused int idx, uint8_t buf[6]) {
-    W5X00_DEBUG("Warning. No mac in otp. Generating mac from board id\n");
+    W5X00_DEBUG("W5X00: No mac set. Generating mac from board id\n");
     pico_unique_board_id_t board_id;
     pico_get_unique_board_id(&board_id);
     memcpy(buf, &board_id.id[2], 6);
@@ -294,7 +294,7 @@ static int w5x00_ensure_up(w5x00_t *self) {
 
     w5x00_delay_ms(250);
 
-    W5X00_DEBUG("w5x00 loaded ok, mac %02x:%02x:%02x:%02x:%02x:%02x\n",
+    W5X00_DEBUG("W5X00: loaded ok, mac %02x:%02x:%02x:%02x:%02x:%02x\n",
         self->mac[0], self->mac[1], self->mac[2], self->mac[3], self->mac[4], self->mac[5]);
 
     // Enable async events from low-level driver

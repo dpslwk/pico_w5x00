@@ -86,7 +86,7 @@ static int w5x00_arch_ethernet_connect_until(absolute_time_t until) {
         }
         if (new_status != status) {
             status = new_status;
-            W5X00_ARCH_DEBUG("connect status: %s\n", w5x00_tcpip_link_status_name(status));
+            W5X00_ARCH_DEBUG("WX500: connect status: %s\n", w5x00_tcpip_link_status_name(status));
         }
         if (time_reached(until)) {
             return PICO_ERROR_TIMEOUT;
