@@ -85,6 +85,13 @@ STATIC err_t w5x00_netif_init(struct netif *netif) {
 
     // Enable MAC filtering so we only get frames destined for us, to reduce load on lwIP
     setSn_MR(0, getSn_MR(0) | Sn_MR_MFEN);
+    // Enable IPv6 packet Blocking bit in MACRAW mode
+    setSn_MR2(0, getSn_MR2(0) | Sn_MR2_IPV6BLK);
+    // Enable Multicast Blocking bit in MACRAW mode
+    // Note may need to turn this off if using MDNS Responder LWIP_MDNS_RESPONDER (but is OK for just MDNS queries)
+    setSn_MR2(0, getSn_MR2(0) | Sn_MR2_MMBLK);
+    // Enable Broadcast Blocking bit in MACRAW mode
+    setSn_MR2(0, getSn_MR2(0) | Sn_MR2_MBBLK);
 
     return ERR_OK;
 }
