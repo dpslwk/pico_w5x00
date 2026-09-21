@@ -20,6 +20,9 @@
 #endif
 
 static async_context_freertos_t w5x00_async_context_freertos;
+#if configSUPPORT_STATIC_ALLOCATION
+static StackType_t w5x00_task_stack[W5X00_TASK_STACK_SIZE];
+#endif
 
 async_context_t *w5x00_arch_init_default_async_context(void) {
     async_context_freertos_config_t config = async_context_freertos_default_config();
@@ -28,6 +31,9 @@ async_context_t *w5x00_arch_init_default_async_context(void) {
 #endif
 #ifdef W5X00_TASK_STACK_SIZE
     config.task_stack_size = W5X00_TASK_STACK_SIZE;
+#endif
+#if configSUPPORT_STATIC_ALLOCATION
+    config.task_stack = w5x00_task_stack;
 #endif
     if (async_context_freertos_init(&w5x00_async_context_freertos, &config))
         return &w5x00_async_context_freertos.core;
